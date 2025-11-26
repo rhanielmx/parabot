@@ -276,14 +276,24 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 const birthdayGifs = [
   'https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif',
-  'https://media.giphy.com/media/1BXa2alBjrCXC/giphy.gif',
+  'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNDAxZXc5OGpld2R0ZngzempjOTZ0Y25kNGZhY2Iyc3ByZmF6NjM0dSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/s2qXK8wAvkHTO/giphy.gif',
+  'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNDAxZXc5OGpld2R0ZngzempjOTZ0Y25kNGZhY2Iyc3ByZmF6NjM0dSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/e0YP61K2BlBZEp3P50/giphy.gif',
+  'https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExbWwxdWhsazdodGM0dHA3amF4YzI3YWV5M3p6eDNvcmc1bHE1cG83YyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/1DTBGm5Rfgymk/giphy.gif',
+  'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYjBwczR6bWRnb2tocmJ3ejRxOGYwYjB6Z3Z0d201a2NzYWwyZTR2YyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/YTbZzCkRQCEJa/giphy.gif',
+  'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYjBwczR6bWRnb2tocmJ3ejRxOGYwYjB6Z3Z0d201a2NzYWwyZTR2YyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/uX3rHqEPQPUCRRUcDT/giphy.gif',
+  'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYjBwczR6bWRnb2tocmJ3ejRxOGYwYjB6Z3Z0d201a2NzYWwyZTR2YyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/yoJC2GnSClbPOkV0eA/giphy.gif',
+  'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYjBwczR6bWRnb2tocmJ3ejRxOGYwYjB6Z3Z0d201a2NzYWwyZTR2YyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/IQF90tVlBIByw/giphy.gif',
+  'https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3N3hkeXByNGVrZDBlaHFjc2p3dnZibzl1bjUzenMzcjRzOGltNmsycyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Xgm5k3TOtUlXkgpt8v/giphy.gif',
+  'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExejN1aHIxbXV0MHVnNDBwYXp6Z3AyeHlodG83eHpobjA5aDF0Z2tpMiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/O5UGRAnBzvnvYucVpJ/giphy.gif',
+  'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExejN1aHIxbXV0MHVnNDBwYXp6Z3AyeHlodG83eHpobjA5aDF0Z2tpMiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/XLZrl9rjReTqo/giphy.gif'
 ];
+
 
 function padMonth(month) {
   return month < 10 ? `0${month}` : String(month);
 }
 
-client.once('ready', () => {
+client.once('clientReady', () => {
   console.log('🤖 Bot está online!');
 
   function checarAniversarios() {
