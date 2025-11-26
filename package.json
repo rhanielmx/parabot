@@ -1,4 +1,14 @@
-{
+{  
+  "name": "discord-birthday-bot",
+  "version": "1.0.0",
+  "description": "Bot de aniversários para Discord com backup no Google Drive",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "keywords": ["discord", "bot", "birthday"],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
     "better-sqlite3": "^12.4.1",
     "discord.js": "^14.24.2",
