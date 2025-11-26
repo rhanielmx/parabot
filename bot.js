@@ -18,22 +18,63 @@ const LOCAL_DB_PATH = path.join(__dirname, DB_FILENAME);
 // Exemplo: https://drive.google.com/file/d/1ABC123xyz/view -> ID = 1ABC123xyz
 const DRIVE_FILE_ID = process.env.DRIVE_FILE_ID || null; // ou cole direto: '1ABC123xyz'
 
+// OU configure o caminho da pasta (se não usar ID)
+const DRIVE_FOLDER_PATH = process.env.DRIVE_FOLDER_PATH || null; // ex: 'Meus Projetos/Discord Bots'
+
 let drive;
 let driveFileId = DRIVE_FILE_ID; // ID do arquivo no Google Drive
 
+// Cria arquivos JSON a partir de variáveis de ambiente (para deploy)
+function setupCredentialsFromEnv() {
+  // Se os arquivos já existem, não faz nada
+  if (fs.existsSync(CREDENTIALS_PATH) && fs.existsSync(TOKEN_PATH)) {
+    return;
+  }
+
+  console.log('📝 Criando arquivos de credenciais a partir de variáveis de ambiente...');
+
+  // Cria credentials.json se tiver a variável
+  if (process.env.CREDENTIALS_JSON && !fs.existsSync(CREDENTIALS_PATH)) {
+    try {
+      const credentials = JSON.parse(process.env.CREDENTIALS_JSON);
+      fs.writeFileSync(CREDENTIALS_PATH, JSON.stringify(credentials, null, 2));
+      console.log('✅ credentials.json criado');
+    } catch (error) {
+      console.error('❌ Erro ao criar credentials.json:', error.message);
+    }
+  }
+
+  // Cria token.json se tiver a variável
+  if (process.env.TOKEN_JSON && !fs.existsSync(TOKEN_PATH)) {
+    try {
+      const token = JSON.parse(process.env.TOKEN_JSON);
+      fs.writeFileSync(TOKEN_PATH, JSON.stringify(token, null, 2));
+      console.log('✅ token.json criado');
+    } catch (error) {
+      console.error('❌ Erro ao criar token.json:', error.message);
+    }
+  }
+}
+
 // Autentica com Google Drive
 async function authenticateDrive() {
+  // Primeiro tenta criar arquivos das variáveis de ambiente
+  setupCredentialsFromEnv();
+
+  if (!fs.existsSync(CREDENTIALS_PATH)) {
+    throw new Error('credentials.json não encontrado e CREDENTIALS_JSON não definido no .env');
+  }
+
+  if (!fs.existsSync(TOKEN_PATH)) {
+    throw new Error('token.json não encontrado e TOKEN_JSON não definido no .env');
+  }
+
   const credentials = JSON.parse(fs.readFileSync(CREDENTIALS_PATH));
   const { client_secret, client_id, redirect_uris } = credentials.installed || credentials.web;
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
 
-  // Verifica se já existe token salvo
-  if (fs.existsSync(TOKEN_PATH)) {
-    const token = JSON.parse(fs.readFileSync(TOKEN_PATH));
-    oAuth2Client.setCredentials(token);
-  } else {
-    throw new Error('Token não encontrado. Execute o script de autenticação primeiro.');
-  }
+  const token = JSON.parse(fs.readFileSync(TOKEN_PATH));
+  oAuth2Client.setCredentials(token);
 
   drive = google.drive({ version: 'v3', auth: oAuth2Client });
   console.log('✅ Autenticado no Google Drive');
@@ -60,6 +101,17 @@ async function findOrCreateDriveFile() {
     // Se não tem ID, procura pelo nome e pasta
     let query = `name='${DB_FILENAME}' and trashed=false`;
     
+    // Se especificou caminho de pasta, busca o ID da pasta primeiro
+    if (DRIVE_FOLDER_PATH) {
+      const folderId = await findFolderByPath(DRIVE_FOLDER_PATH);
+      if (folderId) {
+        query += ` and '${folderId}' in parents`;
+        console.log(`🔍 Procurando em: ${DRIVE_FOLDER_PATH}`);
+      } else {
+        throw new Error(`Pasta não encontrada: ${DRIVE_FOLDER_PATH}`);
+      }
+    }
+
     const response = await drive.files.list({
       q: query,
       fields: 'files(id, name, parents)',
@@ -81,6 +133,29 @@ async function findOrCreateDriveFile() {
     console.error('❌ Erro ao procurar arquivo no Drive:', error.message);
     throw error;
   }
+}
+
+// Procura pasta por caminho (ex: "Meus Projetos/Discord Bots")
+async function findFolderByPath(folderPath) {
+  const folders = folderPath.split('/').map(f => f.trim());
+  let parentId = 'root';
+
+  for (const folderName of folders) {
+    const response = await drive.files.list({
+      q: `name='${folderName}' and '${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+      fields: 'files(id, name)',
+      spaces: 'drive'
+    });
+
+    if (response.data.files.length === 0) {
+      console.error(`❌ Pasta não encontrada: ${folderName}`);
+      return null;
+    }
+
+    parentId = response.data.files[0].id;
+  }
+
+  return parentId;
 }
 
 // Baixa o banco de dados do Drive
@@ -130,6 +205,14 @@ async function uploadToDrive() {
     } else {
       // Cria novo arquivo
       const fileMetadata = { name: DB_FILENAME };
+      
+      // Se especificou pasta, coloca lá
+      if (DRIVE_FOLDER_PATH) {
+        const folderId = await findFolderByPath(DRIVE_FOLDER_PATH);
+        if (folderId) {
+          fileMetadata.parents = [folderId];
+        }
+      }
       
       const response = await drive.files.create({
         requestBody: fileMetadata,
@@ -200,7 +283,7 @@ function padMonth(month) {
   return month < 10 ? `0${month}` : String(month);
 }
 
-client.once('clientReady', () => {
+client.once('ready', () => {
   console.log('🤖 Bot está online!');
 
   function checarAniversarios() {

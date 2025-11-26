@@ -1,5 +1,7 @@
 credentials.json
 token.json
-.env
 *.sqlite
 node_modules/
+
+.env
+.env.deploy
